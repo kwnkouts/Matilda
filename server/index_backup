@@ -1,0 +1,53 @@
+const { find } = require('lodash');
+
+const { GraphQLServer } = require('graphql-yoga')
+
+const mongoose = require('mongoose');
+mongoose.connect('mongodb://localhost/matilda2');
+
+const Matildor = mongoose.model('Matildor', {
+  distribution: String,
+  volume: String,
+  capability: String
+});
+
+const typeDefs = `
+
+  type Query {
+    matildors(distribution: String!): Matildor
+  }
+
+  type Matildor {
+    id: ID!
+    distribution: String
+    volume: String
+    capability: String
+  }
+
+
+`
+
+const resolvers = {
+
+  Query: {
+     //matildors: () => Matildor.find()
+     matildors: (_, { distribution }) => find(matildors, { distribution })
+  },
+
+  // Mutation: {
+  //   createMatildor: async (_, { distribution, capability }) => {
+  //     const matildor = new Matildor({distribution, volume: 'default volume', capability });
+  //     await matildor.save();
+  //     return matildor;
+  //   }
+  // }
+
+}
+
+const server = new GraphQLServer({ typeDefs, resolvers })
+
+mongoose.connection.once('open', function() {
+  // we're connected!
+});
+
+server.start(() => console.log('Server is running on localhost:4000'))
